@@ -193,7 +193,8 @@ def language_css() -> str:
     return f"""
     <style>
     :root {{ --ink:#142b35; --muted:#647982; --teal:#087f8c; --mint:#c9f0e6; --paper:#f4f8f7; }}
-    html, body, [data-testid="stAppViewContainer"] {{ direction:{direction}; }}
+    html, body, .stApp {{ direction:ltr; }}
+    [data-testid="stMain"], [data-testid="stSidebar"] {{ direction:{direction}; }}
     .stApp {{ background: radial-gradient(ellipse at 8% 0%, #e3f4f0 0, transparent 30%), var(--paper); color:var(--ink); font-family:'DM Sans','Noto Sans Arabic',Tahoma,Arial,sans-serif; }}
     [data-testid="stHeader"] {{ background:transparent; }}
     .block-container {{ max-width:1440px; padding-top:1.25rem; padding-bottom:3rem; }}
@@ -218,6 +219,19 @@ def language_css() -> str:
     .section-title {{ margin:.45rem 0 .65rem; color:#203943; font-weight:700; font-size:1.08rem; }}
     [data-testid="stHorizontalBlock"] {{ flex-direction:{row_direction}; }}
     [dir="rtl"] {{ text-align:right; }}
+    @media (max-width: 768px) {{
+        .block-container {{ padding:1rem .85rem 2rem; }}
+        .hero {{ padding:1.35rem 1.2rem; border-radius:18px; }}
+        .hero h1 {{ font-size:1.75rem; }}
+        .hero p {{ font-size:1rem; }}
+        [data-testid="stHorizontalBlock"] {{ flex-direction:column !important; gap:.85rem; }}
+        [data-testid="stHorizontalBlock"] > [data-testid="column"] {{
+            flex:1 1 100% !important;
+            width:100% !important;
+            min-width:100% !important;
+        }}
+        [data-testid="stRadio"] > div {{ flex-wrap:wrap; gap:.4rem .65rem; }}
+    }}
     </style>
     """
 
