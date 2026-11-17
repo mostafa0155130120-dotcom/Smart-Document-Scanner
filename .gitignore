@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Editors / OS
+.vscode/*
+!.vscode/
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local secrets (never commit)
+.streamlit/secrets.toml
+.env
+
+# Scan output
+*.pdf
+output/
+
+
+

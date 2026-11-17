@@ -32,14 +32,11 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
-MAX_CANDIDATES = 10  # how many of the biggest contours we examine
-MAX_AREA_RATIO = 0.98  # a "document" covering the whole frame means detection found the border
+MAX_CANDIDATES = 10
+MAX_AREA_RATIO = 0.98
 CORNER_LABELS = ("TL", "TR", "BR", "BL")
 
 
-# --------------------------------------------------------------------------- #
-# Data containers
-# --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class DetectionParams:
     """Tunable settings for document detection.
@@ -101,9 +98,6 @@ class ScanResult:
     detection: DetectionResult
 
 
-# --------------------------------------------------------------------------- #
-# Step 8 — ordering the four corners
-# --------------------------------------------------------------------------- #
 def order_points(points: np.ndarray) -> np.ndarray:
     """Order four points as top-left, top-right, bottom-right, bottom-left.
 
@@ -152,9 +146,6 @@ def _is_plausible_quad(rect: np.ndarray, min_angle: float = 40.0, max_angle: flo
     return True
 
 
-# --------------------------------------------------------------------------- #
-# Steps 4-5 — edge / region maps (several strategies, tried in order)
-# --------------------------------------------------------------------------- #
 def _canny_edges(blurred: np.ndarray, low: int, high: int) -> np.ndarray:
     """Canny edge detector followed by a morphological *closing*.
 
@@ -197,9 +188,6 @@ def _otsu_mask(blurred: np.ndarray, invert: bool) -> np.ndarray:
     return cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
 
-# --------------------------------------------------------------------------- #
-# Steps 6-7 — contours and the four-point polygon
-# --------------------------------------------------------------------------- #
 def _quad_ok(rect: np.ndarray, min_area: float, max_area: float) -> bool:
     area = float(cv2.contourArea(rect.reshape(-1, 1, 2)))
     return min_area <= area <= max_area and _is_plausible_quad(rect)
@@ -218,7 +206,6 @@ def _find_quad(
     Returns:
         ``(ordered_quad_or_None, biggest_contours)``.
     """
-    # [-2] picks the contour list in both the 2- and 3-value return conventions.
     found = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
     contours = sorted(found, key=cv2.contourArea, reverse=True)[:MAX_CANDIDATES]
 
@@ -240,7 +227,7 @@ def _find_quad(
         for eps in np.linspace(epsilon, epsilon * 3.0, 5):
             approx = cv2.approxPolyDP(hull, float(eps) * perimeter, True)
             if len(approx) < 4:
-                break  # simplified too far; try the next contour
+                break
             if len(approx) == 4:
                 rect = order_points(approx.reshape(4, 2))
                 if _quad_ok(rect, min_area, max_area):
@@ -249,9 +236,6 @@ def _find_quad(
     return None, contours
 
 
-# --------------------------------------------------------------------------- #
-# Public detection API
-# --------------------------------------------------------------------------- #
 def detect_document(image: np.ndarray, params: DetectionParams | None = None) -> DetectionResult:
     """Detect the four corners of the document in ``image``.
 
@@ -266,16 +250,12 @@ def detect_document(image: np.ndarray, params: DetectionParams | None = None) ->
     params = params or DetectionParams()
     ensure_valid_image(image)
 
-    # Step 2: resize (never enlarge: tiny images are used as they are).
     if image.shape[0] > params.detection_height:
         small, scale = resize_keep_aspect(image, height=params.detection_height)
     else:
         small, scale = image, 1.0
 
-    # Step 3: grayscale. Edges depend on brightness changes, colour only adds noise.
     gray = small if small.ndim == 2 else cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-    # Step 4: Gaussian blur. Averages neighbours with a bell-shaped weight so
-    # paper texture and sensor noise do not turn into thousands of tiny edges.
     blurred = cv2.GaussianBlur(gray, (params.blur_kernel, params.blur_kernel), 0)
 
     height, width = blurred.shape
@@ -300,7 +280,7 @@ def detect_document(image: np.ndarray, params: DetectionParams | None = None) ->
             continue
 
         orig_h, orig_w = image.shape[:2]
-        corners = quad / scale  # back to original-photo pixels
+        corners = quad / scale
         corners[:, 0] = np.clip(corners[:, 0], 0, orig_w - 1)
         corners[:, 1] = np.clip(corners[:, 1], 0, orig_h - 1)
         candidates = [np.round(c.astype(np.float32) / scale).astype(np.int32) for c in contours[:5]]
@@ -326,9 +306,6 @@ def full_image_detection(image: np.ndarray) -> DetectionResult:
     return DetectionResult(corners, "full-image", None, [])
 
 
-# --------------------------------------------------------------------------- #
-# Step 9 — perspective transform
-# --------------------------------------------------------------------------- #
 def _output_size(rect: np.ndarray) -> tuple[int, int]:
     """Width and height of the flattened page, from the quad's side lengths.
 
@@ -338,7 +315,6 @@ def _output_size(rect: np.ndarray) -> tuple[int, int]:
     top_left, top_right, bottom_right, bottom_left = rect
     width = max(np.linalg.norm(bottom_right - bottom_left), np.linalg.norm(top_right - top_left))
     height = max(np.linalg.norm(top_right - bottom_right), np.linalg.norm(top_left - bottom_left))
-    # +1: corner-to-corner distance counts pixel *gaps*; the output needs one more pixel than gaps.
     return int(round(float(width))) + 1, int(round(float(height))) + 1
 
 
@@ -382,7 +358,6 @@ def four_point_transform(
         [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32
     )
     matrix = cv2.getPerspectiveTransform(rect, destination)
-    # INTER_CUBIC keeps text crisp; BORDER_REPLICATE avoids black slivers at the edges.
     return cv2.warpPerspective(
         image, matrix, (width, height), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
     )
@@ -400,22 +375,19 @@ def scan_document(
     return ScanResult(warped=warped, detection=detection)
 
 
-# --------------------------------------------------------------------------- #
-# Debug drawing
-# --------------------------------------------------------------------------- #
 def draw_detection(image: np.ndarray, detection: DetectionResult) -> np.ndarray:
     """Return a copy of ``image`` with candidate contours, the chosen quad and corners drawn."""
     canvas = image.copy() if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
     height, width = canvas.shape[:2]
     thickness = max(2, round(max(height, width) / 400))
 
-    for contour in detection.contours:  # thin orange: everything the detector considered
+    for contour in detection.contours:
         cv2.polylines(canvas, [contour.reshape(-1, 1, 2)], True, (0, 140, 255), max(1, thickness // 2))
 
     points = np.round(detection.corners).astype(np.int32)
-    cv2.polylines(canvas, [points.reshape(-1, 1, 2)], True, (0, 200, 0), thickness)  # green: chosen quad
+    cv2.polylines(canvas, [points.reshape(-1, 1, 2)], True, (0, 200, 0), thickness)
     for (x, y), label in zip(points, CORNER_LABELS):
-        cv2.circle(canvas, (int(x), int(y)), thickness * 3, (0, 0, 255), -1)  # red: corners
+        cv2.circle(canvas, (int(x), int(y)), thickness * 3, (0, 0, 255), -1)
         cv2.putText(
             canvas, label, (int(x) + thickness * 4, int(y) - thickness * 4),
             cv2.FONT_HERSHEY_SIMPLEX, max(0.6, thickness * 0.35), (0, 0, 255),

@@ -1,0 +1,29 @@
+{
+    "version":  "2.0.0",
+    "tasks":  [
+                  {
+                      "label":  "Run Smart Document Scanner",
+                      "type":  "shell",
+                      "command":  "${command:python.interpreterPath}",
+                      "args":  [
+                                   "-m",
+                                   "streamlit",
+                                   "run",
+                                   "app.py",
+                                   "--server.address",
+                                   "127.0.0.1"
+                               ],
+                      "options":  {
+                                      "cwd":  "${workspaceFolder}"
+                                  },
+                      "problemMatcher":  [
+
+                                         ],
+                      "presentation":  {
+                                           "reveal":  "always",
+                                           "panel":  "dedicated",
+                                           "clear":  false
+                                       }
+                  }
+              ]
+}

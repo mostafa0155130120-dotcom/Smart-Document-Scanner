@@ -82,9 +82,6 @@ class ScanSettings:
             raise ValueError("The adaptive neighbourhood size must be odd and at least 3 (or 0 for automatic).")
 
 
-# --------------------------------------------------------------------------- #
-# Building blocks
-# --------------------------------------------------------------------------- #
 def to_grayscale(image: np.ndarray) -> np.ndarray:
     """BGR -> gray using ``cv2.cvtColor`` (gray = 0.299 R + 0.587 G + 0.114 B)."""
     ensure_valid_image(image)
@@ -105,8 +102,8 @@ def estimate_background(channel: np.ndarray) -> np.ndarray:
         else channel
     )
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
-    background = cv2.dilate(small, kernel)  # ink vanishes
-    background = cv2.medianBlur(background, 21)  # smooth the lighting map
+    background = cv2.dilate(small, kernel)
+    background = cv2.medianBlur(background, 21)
     if scale < 1.0:
         background = cv2.resize(background, (width, height), interpolation=cv2.INTER_LINEAR)
     return background
@@ -114,13 +111,10 @@ def estimate_background(channel: np.ndarray) -> np.ndarray:
 
 def normalize_illumination(channel: np.ndarray) -> np.ndarray:
     """Divide a channel by its estimated background: paper -> white, lighting removed."""
-    background = np.maximum(estimate_background(channel), 1)  # avoid division by zero
+    background = np.maximum(estimate_background(channel), 1)
     return cv2.divide(channel, background, scale=255)
 
 
-# --------------------------------------------------------------------------- #
-# The five scanning looks
-# --------------------------------------------------------------------------- #
 def enhance_color(image: np.ndarray) -> np.ndarray:
     """Colour scan with shadows removed and paper turned white.
 
@@ -195,9 +189,6 @@ def apply_adaptive_threshold(
     )
 
 
-# --------------------------------------------------------------------------- #
-# Adjustments
-# --------------------------------------------------------------------------- #
 def adjust_brightness_contrast(image: np.ndarray, brightness: int = 0, contrast: int = 0) -> np.ndarray:
     """Linear adjustment ``out = alpha * (in - 128) + 128 + brightness``.
 
@@ -245,11 +236,11 @@ def rotate_image(image: np.ndarray, angle: float) -> np.ndarray:
 
     height, width = image.shape[:2]
     center = (width / 2.0, height / 2.0)
-    matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)  # OpenCV: positive = counter-clockwise
+    matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)
     cos, sin = abs(matrix[0, 0]), abs(matrix[0, 1])
     new_w = int(np.ceil(height * sin + width * cos))
     new_h = int(np.ceil(height * cos + width * sin))
-    matrix[0, 2] += new_w / 2.0 - center[0]  # keep the picture centred on the bigger canvas
+    matrix[0, 2] += new_w / 2.0 - center[0]
     matrix[1, 2] += new_h / 2.0 - center[1]
     return cv2.warpAffine(
         image, matrix, (new_w, new_h), flags=cv2.INTER_CUBIC,
@@ -257,9 +248,6 @@ def rotate_image(image: np.ndarray, angle: float) -> np.ndarray:
     )
 
 
-# --------------------------------------------------------------------------- #
-# Full pipeline
-# --------------------------------------------------------------------------- #
 def process_scan(image: np.ndarray, settings: ScanSettings | None = None) -> np.ndarray:
     """Apply the chosen scanning look, the adjustments and the rotation.
 

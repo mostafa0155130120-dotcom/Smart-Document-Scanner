@@ -1,0 +1,20 @@
+﻿{
+    "version":  "0.2.0",
+    "configurations":  [
+                           {
+                               "name":  "Run Smart Document Scanner",
+                               "type":  "debugpy",
+                               "request":  "launch",
+                               "module":  "streamlit",
+                               "args":  [
+                                            "run",
+                                            "app.py",
+                                            "--server.address",
+                                            "127.0.0.1"
+                                        ],
+                               "console":  "integratedTerminal",
+                               "cwd":  "${workspaceFolder}",
+                               "justMyCode":  false
+                           }
+                       ]
+}

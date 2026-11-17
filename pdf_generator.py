@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 PAGE_SIZE_A4 = "A4"
 PAGE_SIZE_ORIGINAL = "Original Size"
 PAGE_SIZE_OPTIONS: tuple[str, ...] = (PAGE_SIZE_A4, PAGE_SIZE_ORIGINAL)
-PDF_MAX_POINTS = 14_400.0  # PDF viewers support pages up to 200 inches
+PDF_MAX_POINTS = 14_400.0
 
 
 class PdfGenerationError(ScannerError):
@@ -64,7 +64,7 @@ def _page_geometry(
     img_h, img_w = image.shape[:2]
     if page_size == PAGE_SIZE_A4:
         page_w, page_h = A4
-        if img_w > img_h:  # landscape scan -> landscape page
+        if img_w > img_h:
             page_w, page_h = page_h, page_w
         fit = min((page_w - 2 * margin_pt) / img_w, (page_h - 2 * margin_pt) / img_h)
         draw_w, draw_h = img_w * fit, img_h * fit
@@ -114,6 +114,6 @@ def generate_pdf(
         pdf.save()
     except InvalidImageError:
         raise
-    except Exception as exc:  # ReportLab/Pillow raise many unrelated types
+    except Exception as exc:
         raise PdfGenerationError(f"The PDF could not be created: {exc}") from exc
     return output.getvalue()

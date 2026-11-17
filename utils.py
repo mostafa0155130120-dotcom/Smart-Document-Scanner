@@ -22,20 +22,14 @@ from PIL import Image, UnidentifiedImageError
 
 logger = logging.getLogger(__name__)
 
-# --------------------------------------------------------------------------- #
-# Limits
-# --------------------------------------------------------------------------- #
 ALLOWED_EXTENSIONS: tuple[str, ...] = (".jpg", ".jpeg", ".png")
-ALLOWED_FORMATS: frozenset[str] = frozenset({"JPEG", "PNG"})  # Pillow format names
+ALLOWED_FORMATS: frozenset[str] = frozenset({"JPEG", "PNG"})
 MAX_FILE_SIZE_MB = 15
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-MIN_SIDE_PX = 100  # anything smaller cannot hold a readable document
-MAX_PIXELS = 60_000_000  # ~60 megapixels; protects memory on small servers
+MIN_SIDE_PX = 100
+MAX_PIXELS = 60_000_000
 
 
-# --------------------------------------------------------------------------- #
-# Exceptions
-# --------------------------------------------------------------------------- #
 class ScannerError(Exception):
     """Base class for every error this project raises on purpose.
 
@@ -60,9 +54,6 @@ class DocumentNotFoundError(ScannerError):
         self.edges = edges
 
 
-# --------------------------------------------------------------------------- #
-# Validation
-# --------------------------------------------------------------------------- #
 def validate_extension(filename: str | None) -> str:
     """Return the lower-case extension of ``filename`` or raise.
 
@@ -101,9 +92,6 @@ def ensure_valid_image(image: object) -> None:
     raise InvalidImageError("Images must be grayscale or 3-channel (BGR) arrays.")
 
 
-# --------------------------------------------------------------------------- #
-# Loading and saving
-# --------------------------------------------------------------------------- #
 def load_image_from_bytes(data: bytes, filename: str | None = None) -> np.ndarray:
     """Decode raw JPG/PNG bytes into a BGR image, validating along the way.
 
@@ -195,9 +183,6 @@ def decode_image_unchanged(data: bytes) -> np.ndarray:
     return image
 
 
-# --------------------------------------------------------------------------- #
-# Resizing and conversion
-# --------------------------------------------------------------------------- #
 def resize_keep_aspect(
     image: np.ndarray, *, height: int | None = None, max_side: int | None = None
 ) -> tuple[np.ndarray, float]:
