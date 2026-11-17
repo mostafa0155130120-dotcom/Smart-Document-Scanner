@@ -99,9 +99,10 @@ TEXT = {
         "speckle": "Speckle filter (C)", "reset_image": "Reset to original image",
         "title": "Smart Document Scanner", "subtitle": "Turn a photo of a page into a clear, flat scan.",
         "tagline": "Private by design · Classic computer vision · Ready to export",
-        "steps_title": "How to scan", "step1": "Choose Upload, Camera, or Sample to add a page.",
-        "step2": "Check the detected corners and adjust the scan in the sidebar.",
-        "step3": "Download the finished image or collect pages into one PDF.",
+        "steps_title": "Scan a document in three steps",
+        "step1": "Add a page by uploading a photo, taking one with your camera, or trying the sample.",
+        "step2": "Check the page outline and fine-tune the result with the sidebar controls.",
+        "step3": "Download your scan, or collect multiple pages into one PDF.",
         "choose_source": "Choose a source above to get started. Try the bundled sample for a quick preview.",
         "original": "Original photo", "scanned": "Scanned result", "detector_saw": "What the detector found",
         "edge_explanation": "The outline it found is shown here.",
@@ -142,9 +143,10 @@ TEXT = {
         "speckle": "تنقية النقاط الصغيرة", "reset_image": "إعادة الصورة لأصلها",
         "title": "الماسح الذكي للمستندات", "subtitle": "حوّل صورة الورقة إلى نسخة واضحة ومستقيمة.",
         "tagline": "خصوصية أولًا · معالجة صور تقليدية · جاهز للتصدير",
-        "steps_title": "طريقة الاستخدام", "step1": "اختر رفع صورة أو الكاميرا أو جرّب الصورة النموذجية.",
-        "step2": "راجع زوايا الورقة واضبط شكل المسح من القائمة الجانبية.",
-        "step3": "نزّل الصورة أو اجمع عدة صفحات في ملف PDF واحد.",
+        "steps_title": "امسح مستندك في 3 خطوات",
+        "step1": "أضف صفحة برفع صورة، أو التقطها بالكاميرا، أو جرّب الصورة النموذجية.",
+        "step2": "راجع حدود الورقة واضبط النتيجة من أدوات القائمة الجانبية.",
+        "step3": "نزّل الصورة بعد تحسينها، أو اجمع عدة صفحات في ملف PDF واحد.",
         "choose_source": "ابدأ باختيار مصدر للصورة. جرّب الصورة النموذجية لمعاينة سريعة.",
         "original": "الصورة الأصلية", "scanned": "النتيجة بعد المسح", "detector_saw": "الحواف التي تم اكتشافها",
         "edge_explanation": "الإطار الذي عثر عليه البرنامج ظاهر هنا.",
@@ -264,7 +266,9 @@ def init_state() -> None:
             st.session_state.setdefault(key, value)
     st.session_state.setdefault("pages", [])
     st.session_state.setdefault("image_id", None)
-    st.session_state.setdefault("ui_language", "العربية")
+    if not st.session_state.get("_language_default_initialized", False):
+        st.session_state["ui_language"] = "English"
+        st.session_state["_language_default_initialized"] = True
 
 
 def apply_control_defaults(mode: ScanMode) -> None:
@@ -527,7 +531,7 @@ def main() -> None:
     st.set_page_config(page_title="Smart Document Scanner", page_icon=icon, layout="wide")
     init_state()
     with st.sidebar:
-        st.radio(tr("language"), ["\u0627\u0644\u0639\u0631\u0628\u064a\u0629", "English"], horizontal=True, key="ui_language")
+        st.radio(tr("language"), ["English", "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"], horizontal=True, key="ui_language")
         st.divider()
     st.markdown(language_css(), unsafe_allow_html=True)
 
