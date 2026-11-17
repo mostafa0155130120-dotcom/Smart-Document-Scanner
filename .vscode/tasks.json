@@ -11,7 +11,9 @@
                                    "run",
                                    "app.py",
                                    "--server.address",
-                                   "127.0.0.1"
+                                   "127.0.0.1",
+                                   "--server.headless",
+                                   "false"
                                ],
                       "options":  {
                                       "cwd":  "${workspaceFolder}"
