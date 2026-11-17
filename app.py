@@ -420,11 +420,11 @@ def render_header(has_image: bool) -> None:
         f"<p>{tr('subtitle')}</p><div class='tags'>{tr('tagline')}</div></div>",
         unsafe_allow_html=True,
     )
-    with st.expander(tr("steps_title"), expanded=not has_image):
+    with st.expander(tr("steps_title"), expanded=False):
         first, second, third = st.columns(3)
-        first.markdown(f"**01**  {tr('step1')}")
-        second.markdown(f"**02**  {tr('step2')}")
-        third.markdown(f"**03**  {tr('step3')}")
+        first.markdown(f"**1-** {tr('step1')}")
+        second.markdown(f"**2-** {tr('step2')}")
+        third.markdown(f"**3-** {tr('step3')}")
 
 
 def render_failure(image: np.ndarray, error: DocumentNotFoundError) -> None:
